@@ -8,121 +8,116 @@
 
 namespace my_cpp {
 
-ASTNode::ASTNode(
-        Type op,
-        std::shared_ptr<ASTNode> left,
-        std::shared_ptr<ASTNode> right,
-        std::unique_ptr<Value> value)
-    : op_(op), left_(left), right_(right), value_(std::move(value)) {
-}
+ASTNode::ASTNode(Type op, std::shared_ptr<ASTNode> left,
+                 std::shared_ptr<ASTNode> right, std::unique_ptr<Value> value)
+    : op_(op), left_(left), right_(right), value_(std::move(value)) {}
 
-ASTNode::Type ASTNode::GetType() const {
-    return op_;
-}
+ASTNode::Type ASTNode::GetType() const { return op_; }
 
 template <typename T>
 T ASTNode::GetValue() const {
-    if (value_ == nullptr) {
-        throw std::runtime_error("ASTNode has no value");
-    }
-    switch (op_) {
+  if (value_ == nullptr) {
+    throw std::runtime_error("ASTNode has no value");
+  }
+  switch (op_) {
     case Type::A_INTLIT:
-        return static_cast<T>(value_->int_value_);
+      return static_cast<T>(value_->int_value_);
+    case Type::A_IDENT:
+    case Type::A_LVIDENT:
+    case Type::A_VAR_DECL:
+      return static_cast<T>(value_->sym_id);
     default:
-        throw std::runtime_error("Invalid ASTNode type");
-    }
+      throw std::runtime_error("Invalid ASTNode type");
+  }
 }
 
-std::shared_ptr<ASTNode> ASTNode::GetLeft() const {
-    return left_;
+template size_t ASTNode::GetValue<size_t>() const;
+template int ASTNode::GetValue<int>() const;
+
+std::shared_ptr<ASTNode> ASTNode::GetLeft() const { return left_; }
+
+std::shared_ptr<ASTNode> ASTNode::GetRight() const { return right_; }
+
+ASTNode::Type ASTNode::GetOp() const { return op_; }
+
+std::shared_ptr<ASTNode> ASTNode::MakeAstNode(Type op,
+                                              std::shared_ptr<ASTNode> left,
+                                              std::shared_ptr<ASTNode> right,
+                                              std::unique_ptr<Value> value) {
+  return std::make_shared<ASTNode>(op, left, right, std::move(value));
 }
 
-std::shared_ptr<ASTNode> ASTNode::GetRight() const {
-    return right_;
+std::shared_ptr<ASTNode> ASTNode::MakeAstLeaf(Type op,
+                                              std::unique_ptr<Value> value) {
+  return std::make_shared<ASTNode>(op, nullptr, nullptr, std::move(value));
 }
 
-ASTNode::Type ASTNode::GetOp() const {
-    return op_;
-}
-
-std::shared_ptr<ASTNode> ASTNode::MakeAstNode(
-        Type op,
-        std::shared_ptr<ASTNode> left,
-        std::shared_ptr<ASTNode> right,
-        std::unique_ptr<Value> value) {
-    return std::make_shared<ASTNode>(op, left, right, std::move(value));
-}
-
-std::shared_ptr<ASTNode> ASTNode::MakeAstLeaf(Type op, std::unique_ptr<Value> value) {
-    return std::make_shared<ASTNode>(op, nullptr, nullptr, std::move(value));
-}
-
-std::shared_ptr<ASTNode> ASTNode::MakeAstUnary(
-        Type op,
-        std::shared_ptr<ASTNode> left,
-        std::unique_ptr<Value> value) {
-    return std::make_shared<ASTNode>(op, left, nullptr, std::move(value));
+std::shared_ptr<ASTNode> ASTNode::MakeAstUnary(Type op,
+                                               std::shared_ptr<ASTNode> left,
+                                               std::unique_ptr<Value> value) {
+  return std::make_shared<ASTNode>(op, left, nullptr, std::move(value));
 }
 
 namespace utility {
 int Evaluate(const ASTNode &node) {
-    auto left = node.GetLeft();
-    auto right = node.GetRight();
+  auto left = node.GetLeft();
+  auto right = node.GetRight();
 
-    auto left_value = 0;
-    if (left != nullptr) {
-        left_value = Evaluate(*left);
-    }
+  auto left_value = 0;
+  if (left != nullptr) {
+    left_value = Evaluate(*left);
+  }
 
-    auto right_value = 0;
-    if (right != nullptr) {
-        right_value = Evaluate(*right);
-    }
+  auto right_value = 0;
+  if (right != nullptr) {
+    right_value = Evaluate(*right);
+  }
 
-    if (node.GetType() == ASTNode::Type::A_INTLIT) {
-        std::cout << "A_INTLIT: " << node.GetValue<int>() << std::endl;
-    } else {
-        std::cout << left_value << " " << node.GetType() << " " << right_value << std::endl;
-    }
+  if (node.GetType() == ASTNode::Type::A_INTLIT) {
+    std::cout << "A_INTLIT: " << node.GetValue<int>() << std::endl;
+  } else {
+    std::cout << left_value << " " << node.GetType() << " " << right_value
+              << std::endl;
+  }
 
-    switch (node.GetType()) {
+  switch (node.GetType()) {
     case ASTNode::Type::A_ADD:
-        return left_value + right_value;
+      return left_value + right_value;
     case ASTNode::Type::A_SUBTRACT:
-        return left_value - right_value;
+      return left_value - right_value;
     case ASTNode::Type::A_MULTIPLY:
-        return left_value * right_value;
+      return left_value * right_value;
     case ASTNode::Type::A_DIVIDE:
-        return left_value / right_value;
+      return left_value / right_value;
     case ASTNode::Type::A_INTLIT:
-        return node.GetValue<int>();
+      return node.GetValue<int>();
     default:
-        throw std::runtime_error("Invalid ASTNode type");
-    }
+      throw std::runtime_error("Invalid ASTNode type");
+  }
 }
-}
-}
+}  // namespace utility
+}  // namespace my_cpp
 
 std::ostream &operator<<(std::ostream &os, const my_cpp::ASTNode::Type &type) {
-    switch (type) {
+  switch (type) {
     case my_cpp::ASTNode::Type::A_ADD:
-        os << "A_ADD";
-        break;
+      os << "A_ADD";
+      break;
     case my_cpp::ASTNode::Type::A_SUBTRACT:
-        os << "A_SUBTRACT";
-        break;
+      os << "A_SUBTRACT";
+      break;
     case my_cpp::ASTNode::Type::A_MULTIPLY:
-        os << "A_MULTIPLY";
-        break;
+      os << "A_MULTIPLY";
+      break;
     case my_cpp::ASTNode::Type::A_DIVIDE:
-        os << "A_DIVIDE";
-        break;
+      os << "A_DIVIDE";
+      break;
     case my_cpp::ASTNode::Type::A_INTLIT:
-        os << "A_INTLIT";
-        break;
+      os << "A_INTLIT";
+      break;
     default:
-        os << "Invalid ASTNode::Type";
-        break;
-    }
-    return os;
+      os << "Invalid ASTNode::Type";
+      break;
+  }
+  return os;
 }
