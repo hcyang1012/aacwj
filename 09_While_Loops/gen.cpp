@@ -18,11 +18,10 @@ void CodeGenerator::GenerateCode(const std::shared_ptr<ASTNode> &root) {
 
 size_t CodeGenerator::codegen_if(const ASTNode &if_stmt) {
     size_t label_false, label_end;
-    auto label = [&]() { return label_id++; };
-    label_false = label();
+    label_false = label_new();
 
     if (if_stmt.GetRight() != nullptr) {
-        label_end = label();
+        label_end = label_new();
     }
 
     codegen_ast(*(if_stmt.GetLeft()), label_end, if_stmt.GetOp());
@@ -43,6 +42,23 @@ size_t CodeGenerator::codegen_if(const ASTNode &if_stmt) {
     return kNoRegister;
 }
 
+size_t CodeGenerator::codegen_while(const ASTNode &while_stmt) {
+    size_t label_start, label_end;
+    label_start = label_new();
+    label_end = label_new();
+
+    codegen_label(label_start);
+    codegen_ast(*(while_stmt.GetLeft()), label_end, while_stmt.GetOp());
+    registers_free_all();
+
+    codegen_ast(*(while_stmt.GetRight()), std::nullopt, while_stmt.GetOp());
+    registers_free_all();
+
+    codegen_jump(label_start);
+    codegen_label(label_end);
+    return kNoRegister;
+}
+
 size_t CodeGenerator::codegen_ast(
         const ASTNode &node,
         std::optional<size_t> reg,
@@ -52,6 +68,8 @@ size_t CodeGenerator::codegen_ast(
     switch (node.GetOp()) {
     case ASTNode::Type::A_IF:
         return codegen_if(node);
+    case ASTNode::Type::A_WHILE:
+        return codegen_while(node);
     case ASTNode::Type::A_GLUE:
         if (node.GetLeft() != nullptr) {
             codegen_ast(*node.GetLeft(), std::nullopt, parent_op);
@@ -86,7 +104,7 @@ size_t CodeGenerator::codegen_ast(
     case ASTNode::Type::A_GT:
     case ASTNode::Type::A_LE:
     case ASTNode::Type::A_GE: {
-        if (parent_op == ASTNode::Type::A_IF) {
+        if (parent_op == ASTNode::Type::A_IF || parent_op == ASTNode::Type::A_WHILE) {
             return codegen_compare_and_jump(node.GetOp(), left_reg, right_reg, *reg);
         } else {
             return codegen_compare_and_set(node.GetOp(), left_reg, right_reg);

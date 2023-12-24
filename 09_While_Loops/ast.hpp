@@ -30,6 +30,7 @@ public:
         A_PRINT,
         A_VAR_DECL,
         A_IF,
+        A_WHILE,
         A_GLUE,
     };
 

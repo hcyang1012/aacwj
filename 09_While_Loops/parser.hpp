@@ -23,6 +23,7 @@ private:
     std::shared_ptr<ASTNode> bin_expr(const size_t prev_precedence = 0);
     std::shared_ptr<ASTNode> compound_stmts();
     std::shared_ptr<ASTNode> if_stmt();
+    std::shared_ptr<ASTNode> while_stmt();
     ASTNode::Type arith_op(const Token::Type &type) const;
     size_t get_priority(const Token &token) const;
     void match(Token::Token::Type type);

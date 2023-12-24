@@ -88,10 +88,14 @@ protected:
 
 private:
     size_t codegen_if(const ASTNode &if_stmt);
+    size_t codegen_while(const ASTNode &while_stmt);
     size_t codegen_ast(
             const ASTNode &node,
             std::optional<size_t> reg = std::nullopt,
             const ASTNode::Type parent_op = ASTNode::Type::A_NULL);
+    size_t label_new() {
+        return label_id++;
+    }
 };
 }  // namespace my_cpp
 std::ostream &operator<<(std::ostream &os, const my_cpp::ASTNode::Type &type);

@@ -82,6 +82,9 @@ std::shared_ptr<ASTNode> Parser::compound_stmts() {
         case Token::Type::T_RBRACE:
             rbrace();
             return left;
+        case Token::Type::T_WHILE:
+            tree = while_stmt();
+            break;
         default:
             throw std::runtime_error("Invalid token");
         }
@@ -115,6 +118,23 @@ std::shared_ptr<ASTNode> Parser::if_stmt() {
     }
 
     return ASTNode::MakeAstNode(ASTNode::Type::A_IF, cond, true_stmt, false_stmt);
+}
+
+std::shared_ptr<ASTNode> Parser::while_stmt() {
+    std::shared_ptr<ASTNode> cond, body;
+
+    match(Token::Type::T_WHILE);
+    lparen();
+    cond = bin_expr();
+
+    if (!(ASTNode::Type::A_EQ <= cond->GetOp() && cond->GetOp() <= ASTNode::Type::A_GE)) {
+        throw std::runtime_error("Invalid comparison operator");
+    }
+    rparen();
+
+    body = compound_stmts();
+
+    return ASTNode::MakeAstNode(ASTNode::Type::A_WHILE, cond, nullptr, body);
 }
 
 ASTNode::Type Parser::arith_op(const Token::Type &type) const {
