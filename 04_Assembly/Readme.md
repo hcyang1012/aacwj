@@ -1,4 +1,4 @@
-# Part 04: An Actual Compiler
+# Part 4: An Actual Compiler
 
 이제, 정말로 컴파일러를 만들어 보자. 이 장에서는 이제까지 만들었던 인터프리터를 x86-64 어셈블리어를 생성하는 컴파일러로 바꿔 볼 것이다.
 
