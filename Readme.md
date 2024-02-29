@@ -9,3 +9,4 @@ This is a clone of [A Compiler Writing Journey](https://github.com/DoctorWkt/acw
 - [Part 4](04_Assembly/Readme.md): An Actual Compiler
 - [Part 5](05_Statements/Readme.md): Statements
 - [Part 6](06_Variables/Readme.md): Variables
+- [Part 7](07_Comparisons/Readme.md): Comparison Operators
